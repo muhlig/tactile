@@ -1,4 +1,4 @@
-const {Gio, GObject, Gtk} = imports.gi;
+const {Gdk, Gio, GObject, Gtk} = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 
 const COLUMN_KEY = 0;
@@ -9,6 +9,17 @@ const KEYBOARD_SHORTCUTS = [
     {id: 'hide-tiles', desc: 'Hide tiles'},
     {id: 'next-monitor', desc: 'Move tiles to next monitor'},
     {id: 'prev-monitor', desc: 'Move tiles to previous monitor'},
+];
+
+const TILE_COLORS = [
+    {id: 'text-color', desc: 'Text color'},
+    {id: 'border-color', desc: 'Border color'},
+    {id: 'background-color', desc: 'Background color'},
+];
+
+const TILE_SIZES = [
+    {id: 'text-size', desc: 'Text size'},
+    {id: 'border-size', desc: 'Border size'},
 ];
 
 function init() {
@@ -47,6 +58,16 @@ function buildPrefsWidget() {
 
     const keyboardShortcutsWidget = buildKeyboardShortcutsWidget(settings, allTreeViews);
     grid.attach(keyboardShortcutsWidget, 0, 3, 1, 1);
+
+    const tileAppearanceLabel = new Gtk.Label({
+        label: '<b>Tile appearance</b>',
+        use_markup: true,
+        visible: true
+    });
+    grid.attach(tileAppearanceLabel, 0, 4, 1, 1);
+
+    const tileAppearanceWidget = buildTileAppearanceWidget(settings);
+    grid.attach(tileAppearanceWidget, 0, 5, 1, 1);
 
     return grid;
 }
@@ -105,6 +126,41 @@ function buildKeyboardShortcutsWidget(settings, allTreeViews) {
     return grid;
 }
 
+function buildTileAppearanceWidget(settings) {
+    const grid = new Gtk.Grid({
+        halign: Gtk.Align.CENTER,
+        column_spacing: 12,
+        row_spacing: 12,
+        visible: true
+    });
+
+    TILE_COLORS.forEach((color, index) => {
+        const label = new Gtk.Label({
+            halign: Gtk.Align.END,
+            label: color.desc,
+            visible: true
+        });
+        grid.attach(label, 0, index, 1, 1);
+
+        const widget = buildColorWidget(settings, color.id);
+        grid.attach(widget, 1, index, 1, 1);
+    });
+
+    TILE_SIZES.forEach((size, index) => {
+        const label = new Gtk.Label({
+            halign: Gtk.Align.END,
+            label: size.desc,
+            visible: true
+        });
+        grid.attach(label, 2, index, 1, 1);
+
+        const widget = buildNumberWidget(settings, size.id);
+        grid.attach(widget, 3, index, 1, 1);
+    });
+
+    return grid;
+}
+
 function buildNumberWidget(settings, id) {
     const spin = new Gtk.SpinButton({
         adjustment: new Gtk.Adjustment({
@@ -116,6 +172,24 @@ function buildNumberWidget(settings, id) {
     });
     settings.bind(id, spin, 'value', Gio.SettingsBindFlags.DEFAULT);
     return spin;
+}
+
+function buildColorWidget(settings, id) {
+    const rgba = new Gdk.RGBA();
+    rgba.parse(settings.get_string(id));
+
+    const color = new Gtk.ColorButton({
+        rgba: rgba,
+        show_editor: true,
+        use_alpha: true,
+        visible: true
+    });
+
+    color.connect('color-set', function () {
+        settings.set_string(id, color.get_rgba().to_string());
+    });
+
+    return color;
 }
 
 // The only widget for capturing accelerators is CellRendererAccel

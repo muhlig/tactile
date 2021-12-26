@@ -99,5 +99,26 @@
             <default>0</default>
             <summary>Row 2</summary>
         </key>
+        <!-- Appearance -->
+        <key name="text-color" type="s">
+            <summary>Text color</summary>
+            <default>'rgba(128,128,255,1.0)'</default>
+        </key>
+        <key name="border-color" type="s">
+            <summary>Border color</summary>
+            <default>'rgba(128,128,255,0.5)'</default>
+        </key>
+        <key name="background-color" type="s">
+            <summary>Background color</summary>
+            <default>'rgba(128,128,255,0.1)'</default>
+        </key>
+        <key name="text-size" type="i">
+            <summary>Text size</summary>
+            <default>48</default>
+        </key>
+        <key name="border-size" type="i">
+            <summary>Border size</summary>
+            <default>1</default>
+        </key>
     </schema>
 </schemalist>

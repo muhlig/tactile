@@ -4,9 +4,12 @@ const ExtensionUtils = imports.misc.extensionUtils;
 
 const Tile = GObject.registerClass(
     class Tile extends St.BoxLayout {
-        _init(area, name) {
+        _init(area, name, styles) {
             super._init({
                 style_class: 'tile',
+                style: `border-color: ${styles.borderColor};`
+                    + `background-color: ${styles.backgroundColor};`
+                    + `border-width: ${styles.borderSize}px;`,
                 x: area.x,
                 y: area.y,
                 width: area.width,
@@ -15,6 +18,8 @@ const Tile = GObject.registerClass(
 
             const label = new St.Label({
                 style_class: 'name',
+                style: `color: ${styles.textColor};`
+                    + `font-size: ${styles.textSize}px;`,
                 text: name.toUpperCase(),
                 x_expand: true,
                 y_align: Clutter.ActorAlign.CENTER,
@@ -163,6 +168,7 @@ class Extension {
     }
 
     createTiles(workarea, layout) {
+        const styles = this.loadStyles(this._settings);
         const tiles = [];
 
         layout.cols.forEach((col_weight, col) => {
@@ -173,12 +179,22 @@ class Extension {
                 const id = `tile-${col}-${row}`;
                 const name = this._settings.get_strv(id)[0] || '';
                 const area = this.calculateArea(workarea, layout, col, row);
-                const tile = {id: id, area: area, actor: new Tile(area, name)};
+                const tile = {id: id, area: area, actor: new Tile(area, name, styles)};
                 tiles.push(tile);
             });
         });
 
         return tiles;
+    }
+
+    loadStyles(settings) {
+        return {
+            textColor: settings.get_string('text-color'),
+            borderColor: settings.get_string('border-color'),
+            backgroundColor: settings.get_string('background-color'),
+            textSize: settings.get_int('text-size'),
+            borderSize: settings.get_int('border-size'),
+        };
     }
 
     calculateArea(workarea, layout, col, row) {
