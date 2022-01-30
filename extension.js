@@ -172,7 +172,9 @@ class Extension {
             rows.push(settings.get_int(`row-${row}`));
         }
 
-        return {cols: cols, rows: rows};
+        const gapsize = settings.get_int('gap-size');
+
+        return {cols: cols, rows: rows, gapsize: gapsize};
     }
 
     createTiles(workarea, layout) {
@@ -186,7 +188,7 @@ class Extension {
                 }
                 const id = `tile-${col}-${row}`;
                 const name = this._settings.get_strv(id)[0] || '';
-                const area = this.calculateArea(workarea, layout, col, row);
+                const area = this.calculateAreaWithGaps(workarea, layout, col, row);
                 const tile = {id: id, area: area, actor: new Tile(area, name, styles)};
                 tiles.push(tile);
             });
@@ -205,6 +207,12 @@ class Extension {
         };
     }
 
+    calculateAreaWithGaps(workarea, layout, col, row) {
+        const shrunkWorkarea = this.shrinkArea(workarea, layout.gapsize, layout.gapsize, 0, 0)
+        const area = this.calculateArea(shrunkWorkarea, layout, col, row);
+        return this.shrinkArea(area, 0, 0, layout.gapsize, layout.gapsize);
+    }
+
     calculateArea(workarea, layout, col, row) {
         const colStart = Math.floor(workarea.x + workarea.width * this.sumUntil(layout.cols, col) / this.sumAll(layout.cols));
         const rowStart = Math.floor(workarea.y + workarea.height * this.sumUntil(layout.rows, row) / this.sumAll(layout.rows));
@@ -219,6 +227,15 @@ class Extension {
         const colEnd = Math.max(area1.x + area1.width, area2.x + area2.width);
         const rowEnd = Math.max(area1.y + area1.height, area2.y + area2.height);
         return {x: colStart, y: rowStart, width: colEnd - colStart, height: rowEnd - rowStart};
+    }
+
+    shrinkArea(area, top, right, bottom, left) {
+        return {
+            x: area.x + left,
+            y: area.y + top,
+            width: area.width - left - right,
+            height: area.height - top - bottom
+        };
     }
 
     moveWindow(window, area) {

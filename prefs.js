@@ -20,6 +20,7 @@ const TILE_COLORS = [
 const TILE_SIZES = [
     {id: 'text-size', desc: 'Text size'},
     {id: 'border-size', desc: 'Border size'},
+    {id: 'gap-size', desc: 'Gap size'},
 ];
 
 function init() {
