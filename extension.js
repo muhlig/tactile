@@ -115,9 +115,10 @@ class Extension {
             log('No active window');
             return;
         }
+        const activeMonitor = monitor != null ? monitor : activeWindow.get_monitor();
 
         // Create tiles
-        const workarea = this.getWorkAreaForMonitor(this._monitor);
+        const workarea = this.getWorkAreaForMonitor(activeMonitor);
         const layout = this.loadLayout(this._settings);
         const tiles = this.createTiles(workarea, layout);
         if (tiles.length < 1) {
@@ -127,7 +128,7 @@ class Extension {
 
         // Save tiles and active window
         this._window = activeWindow;
-        this._monitor = monitor != null ? monitor : activeWindow.get_monitor();
+        this._monitor = activeMonitor;
         this._tiles = tiles;
 
         // Display and bind keys
