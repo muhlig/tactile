@@ -9,6 +9,7 @@ const KEYBOARD_SHORTCUTS = [
     {id: 'hide-tiles', desc: 'Hide tiles'},
     {id: 'next-monitor', desc: 'Move tiles to next monitor'},
     {id: 'prev-monitor', desc: 'Move tiles to previous monitor'},
+    {id: 'show-settings', desc: 'Open extension settings'},
 ];
 
 const TILE_COLORS = [

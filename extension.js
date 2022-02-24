@@ -42,6 +42,7 @@ class Extension {
     enable() {
         this._settings = ExtensionUtils.getSettings();
         this.bindKey('show-tiles', () => this.onShowTiles());
+        this.bindKey('show-settings', () => ExtensionUtils.openPrefs());
     }
 
     disable() {
@@ -49,6 +50,7 @@ class Extension {
         this.onHideTiles();
 
         this.unbindKey('show-tiles');
+        this.unbindKey('show-settings');
         this._settings = null;
     }
 

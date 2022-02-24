@@ -18,6 +18,10 @@
             <default><![CDATA[['<Shift>space']]]></default>
             <summary>Move tiles to previous monitor</summary>
         </key>
+        <key name="show-settings" type="as">
+            <default><![CDATA[['<Super><Shift>t']]]></default>
+            <summary>Show settings panel</summary>
+        </key>
         <!-- Top row -->
         <key name="tile-0-0" type="as">
             <default><![CDATA[['q']]]></default>
