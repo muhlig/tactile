@@ -1,5 +1,6 @@
 const {Gdk, Gio, GObject, Gtk} = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 
 const COLUMN_KEY = 0;
 const COLUMN_MODS = 1;
@@ -25,13 +26,51 @@ const TILE_SIZES = [
 ];
 
 function init() {
+    const provider = new Gtk.CssProvider();
+
+    provider.load_from_path(Me.dir.get_path() + '/prefs.css');
+
+    if (Gtk.StyleContext.add_provider_for_display) {
+        // GTK 4
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
+    } else {
+        // GTK 3
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
+    }
 }
 
 function buildPrefsWidget() {
     const settings = ExtensionUtils.getSettings();
-    const allTreeViews = [];
 
+    const notebook = new Gtk.Notebook({visible: true});
+
+    notebook.append_page(
+        buildLayoutPage(settings),
+        new Gtk.Label({label: 'Layout', visible: true})
+    );
+    notebook.append_page(
+        buildKeyboardShortcutsPage(settings),
+        new Gtk.Label({label: 'Keyboard shortcuts', visible: true})
+    );
+    notebook.append_page(
+        buildAppearancePage(settings),
+        new Gtk.Label({label: 'Appearance', visible: true})
+    );
+
+    return notebook;
+}
+
+function buildLayoutPage(settings) {
     const grid = new Gtk.Grid({
+        halign: Gtk.Align.CENTER,
         margin_start: 12,
         margin_end: 12,
         margin_top: 12,
@@ -41,40 +80,18 @@ function buildPrefsWidget() {
         visible: true
     });
 
-    const tileConfigLabel = new Gtk.Label({
-        label: '<b>Tile configuration</b>',
+    const weightsLabel = new Gtk.Label({
+        label: '<b>Row/column weights</b>',
         use_markup: true,
         visible: true
     });
-    grid.attach(tileConfigLabel, 0, 0, 1, 1);
-
-    const tileConfigWidget = buildTileConfigWidget(settings, allTreeViews);
-    grid.attach(tileConfigWidget, 0, 1, 1, 1);
-
-    const keyboardShortcutsLabel = new Gtk.Label({
-        label: '<b>Keyboard shortcuts</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(keyboardShortcutsLabel, 0, 2, 1, 1);
-
-    const keyboardShortcutsWidget = buildKeyboardShortcutsWidget(settings, allTreeViews);
-    grid.attach(keyboardShortcutsWidget, 0, 3, 1, 1);
-
-    const tileAppearanceLabel = new Gtk.Label({
-        label: '<b>Tile appearance</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(tileAppearanceLabel, 0, 4, 1, 1);
-
-    const tileAppearanceWidget = buildTileAppearanceWidget(settings);
-    grid.attach(tileAppearanceWidget, 0, 5, 1, 1);
+    grid.attach(weightsLabel, 0, 0, 1, 1);
+    grid.attach(buildWeightsWidget(settings), 0, 1, 1, 1);
 
     return grid;
 }
 
-function buildTileConfigWidget(settings, allTreeViews) {
+function buildWeightsWidget(settings) {
     const grid = new Gtk.Grid({
         halign: Gtk.Align.CENTER,
         column_spacing: 12,
@@ -82,7 +99,7 @@ function buildTileConfigWidget(settings, allTreeViews) {
         visible: true
     });
 
-    // Col weights
+    // Column weights
     for (let col = 0; col < 4; col++) {
         const widget = buildNumberWidget(settings, `col-${col}`)
         grid.attach(widget, col + 1, 0, 1, 1);
@@ -91,6 +108,123 @@ function buildTileConfigWidget(settings, allTreeViews) {
     // Row weights
     for (let row = 0; row < 3; row++) {
         const widget = buildNumberWidget(settings, `row-${row}`)
+        grid.attach(widget, 0, row + 1, 1, 1);
+    }
+
+    // Preview
+    const preview = buildPreviewWidget(settings);
+    grid.attach(preview, 1, 1, 4, 3);
+
+    return grid;
+}
+
+function buildPreviewWidget(settings) {
+    const grid = new Gtk.Grid({
+        column_homogeneous: true,
+        row_homogeneous: true,
+        visible: true
+    });
+
+    let tiles = [];
+
+    function discardTiles() {
+        tiles.forEach(tile => grid.remove(tile));
+        tiles = [];
+    }
+
+    function createTiles() {
+        const layout = loadLayout(settings);
+
+        layout.cols.forEach((col_weight, col) => {
+            layout.rows.forEach((row_weight, row) => {
+                if (col_weight < 1 || row_weight < 1) {
+                    return;
+                }
+                const id = `tile-${col}-${row}`;
+                const name = settings.get_strv(id)[0] || '';
+                const area = calculateArea(layout, col, row);
+
+                const tile = new Gtk.Label({
+                    halign: Gtk.Align.FILL,
+                    label: name.toUpperCase(),
+                    visible: true
+                });
+                tile.get_style_context().add_class("tile");
+
+                grid.attach(tile, area.x, area.y, area.width, area.height);
+                tiles.push(tile);
+            });
+        });
+    }
+
+    createTiles();
+
+    settings.connect('changed', () => {
+        discardTiles();
+        createTiles();
+    })
+
+    return grid;
+}
+
+function buildKeyboardShortcutsPage(settings) {
+    const grid = new Gtk.Grid({
+        halign: Gtk.Align.CENTER,
+        margin_start: 12,
+        margin_end: 12,
+        margin_top: 12,
+        margin_bottom: 12,
+        column_spacing: 12,
+        row_spacing: 12,
+        visible: true
+    });
+
+    const allTreeViews = [];
+
+    const tilesLabel = new Gtk.Label({
+        label: '<b>Tile activation keys</b>',
+        use_markup: true,
+        visible: true
+    });
+    grid.attach(tilesLabel, 0, 0, 1, 1);
+    grid.attach(buildTileKeyboardShortcutsWidget(settings, allTreeViews), 0, 1, 1, 1);
+
+    const otherLabel = new Gtk.Label({
+        label: '<b>Keyboard shortcuts</b>',
+        use_markup: true,
+        visible: true
+    });
+    grid.attach(otherLabel, 0, 2, 1, 1);
+    grid.attach(buildOtherKeyboardShortcutsWidget(settings, allTreeViews), 0, 3, 1, 1);
+
+    return grid;
+}
+
+function buildTileKeyboardShortcutsWidget(settings, allTreeViews) {
+    const grid = new Gtk.Grid({
+        halign: Gtk.Align.CENTER,
+        column_spacing: 12,
+        row_spacing: 12,
+        visible: true
+    });
+
+    // Columns
+    for (let col = 0; col < 4; col++) {
+        const widget = new Gtk.Label({
+            halign: Gtk.Align.START,
+            label: `Column ${col + 1}`,
+            visible: true
+        });
+        grid.attach(widget, col + 1, 0, 1, 1);
+    }
+
+    // Rows
+    for (let row = 0; row < 3; row++) {
+        const widget = new Gtk.Label({
+            halign: Gtk.Align.START,
+            label: `Row ${row + 1}`,
+            visible: true
+        });
         grid.attach(widget, 0, row + 1, 1, 1);
     }
 
@@ -105,7 +239,7 @@ function buildTileConfigWidget(settings, allTreeViews) {
     return grid;
 }
 
-function buildKeyboardShortcutsWidget(settings, allTreeViews) {
+function buildOtherKeyboardShortcutsWidget(settings, allTreeViews) {
     const grid = new Gtk.Grid({
         halign: Gtk.Align.CENTER,
         column_spacing: 12,
@@ -124,6 +258,29 @@ function buildKeyboardShortcutsWidget(settings, allTreeViews) {
         const accelerator = buildAcceleratorWidget(settings, shortcut.id, 124, 26, allTreeViews);
         grid.attach(accelerator, 1, index, 1, 1);
     });
+
+    return grid;
+}
+
+function buildAppearancePage(settings) {
+    const grid = new Gtk.Grid({
+        halign: Gtk.Align.CENTER,
+        margin_start: 12,
+        margin_end: 12,
+        margin_top: 12,
+        margin_bottom: 12,
+        column_spacing: 12,
+        row_spacing: 12,
+        visible: true
+    });
+
+    const tilesLabel = new Gtk.Label({
+        label: '<b>Tile appearance</b>',
+        use_markup: true,
+        visible: true
+    });
+    grid.attach(tilesLabel, 0, 0, 1, 1);
+    grid.attach(buildTileAppearanceWidget(settings), 0, 1, 1, 1);
 
     return grid;
 }
@@ -239,6 +396,7 @@ function buildAcceleratorWidget(settings, id, width, height, allTreeViews) {
         visible: true
     });
     treeView.append_column(column);
+    treeView.get_style_context().add_class("accelerator");
 
     // TreeViews keep their selection when they loose focus
     // This prevents more than one from being selected
@@ -262,4 +420,29 @@ function parseAccelerator(settings, id) {
         return [ok, key];
     }
     return [key, mods];
+}
+
+function loadLayout(settings) {
+    const cols = [], rows = [];
+
+    for (let col = 0; col < 4; col++) {
+        cols.push(settings.get_int(`col-${col}`));
+    }
+    for (let row = 0; row < 3; row++) {
+        rows.push(settings.get_int(`row-${row}`));
+    }
+
+    return {cols: cols, rows: rows};
+}
+
+function calculateArea(layout, col, row) {
+    const colStart = sumUntil(layout.cols, col);
+    const rowStart = sumUntil(layout.rows, row);
+    const colEnd = sumUntil(layout.cols, col + 1);
+    const rowEnd = sumUntil(layout.rows, row + 1);
+    return {x: colStart, y: rowStart, width: colEnd - colStart, height: rowEnd - rowStart};
+}
+
+function sumUntil(list, index) {
+    return list.reduce((prev, curr, i) => i < index ? prev + curr : prev, 0);
 }

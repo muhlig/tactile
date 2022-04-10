@@ -1,0 +1,14 @@
+.tile {
+    border: 1px solid rgba(128, 128, 128, 0.5);
+    background: rgba(128, 128, 128, 0.1);
+}
+
+.accelerator {
+    border: 1px solid rgba(128, 128, 128, 0.5);
+    border-radius: 5px;
+}
+
+.accelerator * {
+    border: none;
+    border-radius: 0;
+}
