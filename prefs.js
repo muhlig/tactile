@@ -176,6 +176,18 @@ function buildPreviewWidget(settings, n) {
                 tiles.push(tile);
             });
         });
+
+        if (tiles.length < 1) {
+            const tile = new Gtk.Label({
+                halign: Gtk.Align.FILL,
+                label: 'Error: No tiles',
+                visible: true
+            });
+            tile.get_style_context().add_class('error-tile');
+
+            grid.attach(tile, 0, 0, 1, 1);
+            tiles.push(tile);
+        }
     }
 
     createTiles();
