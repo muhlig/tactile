@@ -5,12 +5,19 @@ const Me = ExtensionUtils.getCurrentExtension();
 const COLUMN_KEY = 0;
 const COLUMN_MODS = 1;
 
-const KEYBOARD_SHORTCUTS = [
+const GENERAL_SHORTCUTS = [
     {id: 'show-tiles', desc: 'Show tiles'},
     {id: 'hide-tiles', desc: 'Hide tiles'},
     {id: 'next-monitor', desc: 'Move tiles to next monitor'},
     {id: 'prev-monitor', desc: 'Move tiles to previous monitor'},
     {id: 'show-settings', desc: 'Open extension settings'},
+];
+
+const LAYOUT_SHORTCUTS = [
+    {id: 'layout-1', desc: 'Layout 1'},
+    {id: 'layout-2', desc: 'Layout 2'},
+    {id: 'layout-3', desc: 'Layout 3'},
+    {id: 'layout-4', desc: 'Layout 4'},
 ];
 
 const TILE_COLORS = [
@@ -53,8 +60,20 @@ function buildPrefsWidget() {
     const notebook = new Gtk.Notebook({visible: true});
 
     notebook.append_page(
-        buildLayoutPage(settings),
-        new Gtk.Label({label: 'Layout', visible: true})
+        buildLayoutPage(settings, 1),
+        new Gtk.Label({label: 'Layout 1', visible: true})
+    );
+    notebook.append_page(
+        buildLayoutPage(settings, 2),
+        new Gtk.Label({label: 'Layout 2', visible: true})
+    );
+    notebook.append_page(
+        buildLayoutPage(settings, 3),
+        new Gtk.Label({label: 'Layout 3', visible: true})
+    );
+    notebook.append_page(
+        buildLayoutPage(settings, 4),
+        new Gtk.Label({label: 'Layout 4', visible: true})
     );
     notebook.append_page(
         buildKeyboardShortcutsPage(settings),
@@ -68,7 +87,7 @@ function buildPrefsWidget() {
     return notebook;
 }
 
-function buildLayoutPage(settings) {
+function buildLayoutPage(settings, n) {
     const grid = new Gtk.Grid({
         halign: Gtk.Align.CENTER,
         margin_start: 12,
@@ -86,12 +105,12 @@ function buildLayoutPage(settings) {
         visible: true
     });
     grid.attach(weightsLabel, 0, 0, 1, 1);
-    grid.attach(buildWeightsWidget(settings), 0, 1, 1, 1);
+    grid.attach(buildWeightsWidget(settings, n), 0, 1, 1, 1);
 
     return grid;
 }
 
-function buildWeightsWidget(settings) {
+function buildWeightsWidget(settings, n) {
     const grid = new Gtk.Grid({
         halign: Gtk.Align.CENTER,
         column_spacing: 12,
@@ -99,26 +118,28 @@ function buildWeightsWidget(settings) {
         visible: true
     });
 
+    const prefix = layoutPrefix(n);
+
     // Column weights
     for (let col = 0; col < 4; col++) {
-        const widget = buildNumberWidget(settings, `col-${col}`)
+        const widget = buildNumberWidget(settings, `${prefix}col-${col}`)
         grid.attach(widget, col + 1, 0, 1, 1);
     }
 
     // Row weights
     for (let row = 0; row < 3; row++) {
-        const widget = buildNumberWidget(settings, `row-${row}`)
+        const widget = buildNumberWidget(settings, `${prefix}row-${row}`)
         grid.attach(widget, 0, row + 1, 1, 1);
     }
 
     // Preview
-    const preview = buildPreviewWidget(settings);
+    const preview = buildPreviewWidget(settings, n);
     grid.attach(preview, 1, 1, 4, 3);
 
     return grid;
 }
 
-function buildPreviewWidget(settings) {
+function buildPreviewWidget(settings, n) {
     const grid = new Gtk.Grid({
         column_homogeneous: true,
         row_homogeneous: true,
@@ -133,7 +154,7 @@ function buildPreviewWidget(settings) {
     }
 
     function createTiles() {
-        const layout = loadLayout(settings);
+        const layout = loadLayout(settings, n);
 
         layout.cols.forEach((col_weight, col) => {
             layout.rows.forEach((row_weight, row) => {
@@ -181,21 +202,29 @@ function buildKeyboardShortcutsPage(settings) {
 
     const allTreeViews = [];
 
-    const tilesLabel = new Gtk.Label({
+    const tileLabel = new Gtk.Label({
         label: '<b>Tile activation keys</b>',
         use_markup: true,
         visible: true
     });
-    grid.attach(tilesLabel, 0, 0, 1, 1);
-    grid.attach(buildTileKeyboardShortcutsWidget(settings, allTreeViews), 0, 1, 1, 1);
+    grid.attach(tileLabel, 0, 0, 2, 1);
+    grid.attach(buildTileKeyboardShortcutsWidget(settings, allTreeViews), 0, 1, 2, 1);
 
-    const otherLabel = new Gtk.Label({
-        label: '<b>Keyboard shortcuts</b>',
+    const layoutLabel = new Gtk.Label({
+        label: '<b>Layout activation keys</b>',
         use_markup: true,
         visible: true
     });
-    grid.attach(otherLabel, 0, 2, 1, 1);
-    grid.attach(buildOtherKeyboardShortcutsWidget(settings, allTreeViews), 0, 3, 1, 1);
+    grid.attach(layoutLabel, 0, 2, 1, 1);
+    grid.attach(buildKeyboardShortcutsWidget(settings, LAYOUT_SHORTCUTS, allTreeViews), 0, 3, 1, 1);
+
+    const generalLabel = new Gtk.Label({
+        label: '<b>General shortcuts</b>',
+        use_markup: true,
+        visible: true
+    });
+    grid.attach(generalLabel, 1, 2, 1, 1);
+    grid.attach(buildKeyboardShortcutsWidget(settings, GENERAL_SHORTCUTS, allTreeViews), 1, 3, 1, 1);
 
     return grid;
 }
@@ -239,7 +268,7 @@ function buildTileKeyboardShortcutsWidget(settings, allTreeViews) {
     return grid;
 }
 
-function buildOtherKeyboardShortcutsWidget(settings, allTreeViews) {
+function buildKeyboardShortcutsWidget(settings, shortcuts, allTreeViews) {
     const grid = new Gtk.Grid({
         halign: Gtk.Align.CENTER,
         column_spacing: 12,
@@ -247,7 +276,7 @@ function buildOtherKeyboardShortcutsWidget(settings, allTreeViews) {
         visible: true
     });
 
-    KEYBOARD_SHORTCUTS.forEach((shortcut, index) => {
+    shortcuts.forEach((shortcut, index) => {
         const label = new Gtk.Label({
             halign: Gtk.Align.END,
             label: shortcut.desc,
@@ -422,14 +451,23 @@ function parseAccelerator(settings, id) {
     return [key, mods];
 }
 
-function loadLayout(settings) {
+function layoutPrefix(n) {
+    // For legacy reasons, layout 1 does not have a prefix
+    if (n === 1) {
+        return "";
+    }
+    return `layout-${n}-`;
+}
+
+function loadLayout(settings, n) {
     const cols = [], rows = [];
+    const prefix = layoutPrefix(n);
 
     for (let col = 0; col < 4; col++) {
-        cols.push(settings.get_int(`col-${col}`));
+        cols.push(settings.get_int(`${prefix}col-${col}`));
     }
     for (let row = 0; row < 3; row++) {
-        rows.push(settings.get_int(`row-${row}`));
+        rows.push(settings.get_int(`${prefix}row-${row}`));
     }
 
     return {cols: cols, rows: rows};

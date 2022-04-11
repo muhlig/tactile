@@ -37,6 +37,7 @@ class Extension {
         this._monitor = null;
         this._tile = null;
         this._date = null;
+        this._layout = 1;
     }
 
     enable() {
@@ -110,9 +111,19 @@ class Extension {
         }
     }
 
-    displayTiles(monitor) {
+    onActivateLayout(n) {
+        // Remember the active monitor and window
+        const monitor = this._monitor;
+        const window = this._window;
+
+        this._layout = n;
+        this.discardTiles();
+        this.displayTiles(monitor, window);
+    }
+
+    displayTiles(monitor, window) {
         // Find active window
-        const activeWindow = this.getActiveWindow();
+        const activeWindow = window != null ? window : this.getActiveWindow();
         if (!activeWindow) {
             log('No active window');
             return;
@@ -121,7 +132,7 @@ class Extension {
 
         // Create tiles
         const workarea = this.getWorkAreaForMonitor(activeMonitor);
-        const layout = this.loadLayout(this._settings);
+        const layout = this.loadLayout(this._settings, this._layout);
         const tiles = this.createTiles(workarea, layout);
         if (tiles.length < 1) {
             log('No tiles');
@@ -143,10 +154,18 @@ class Extension {
         this.bindKey('hide-tiles', () => this.onHideTiles());
         this.bindKey('next-monitor', () => this.onNextMonitor());
         this.bindKey('prev-monitor', () => this.onPrevMonitor());
+        this.bindKey('layout-1', () => this.onActivateLayout(1));
+        this.bindKey('layout-2', () => this.onActivateLayout(2));
+        this.bindKey('layout-3', () => this.onActivateLayout(3));
+        this.bindKey('layout-4', () => this.onActivateLayout(4));
     }
 
     discardTiles() {
         // Unbind keys
+        this.unbindKey('layout-4');
+        this.unbindKey('layout-3');
+        this.unbindKey('layout-2');
+        this.unbindKey('layout-1');
         this.unbindKey('prev-monitor');
         this.unbindKey('next-monitor');
         this.unbindKey('hide-tiles');
@@ -164,14 +183,23 @@ class Extension {
         this._window = null;
     }
 
-    loadLayout(settings) {
+    layoutPrefix(n) {
+        // For legacy reasons, layout 1 does not have a prefix
+        if (n === 1) {
+            return "";
+        }
+        return `layout-${n}-`;
+    }
+
+    loadLayout(settings, n) {
         const cols = [], rows = [];
+        const prefix = this.layoutPrefix(n);
 
         for (let col = 0; col < 4; col++) {
-            cols.push(settings.get_int(`col-${col}`));
+            cols.push(settings.get_int(`${prefix}col-${col}`));
         }
         for (let row = 0; row < 3; row++) {
-            rows.push(settings.get_int(`row-${row}`));
+            rows.push(settings.get_int(`${prefix}row-${row}`));
         }
 
         const gapsize = settings.get_int('gap-size');
