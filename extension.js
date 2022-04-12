@@ -1,4 +1,4 @@
-const {Clutter, GObject, Meta, Shell, St} = imports.gi;
+const {Clutter, GLib, GObject, Meta, Shell, St} = imports.gi;
 const Main = imports.ui.main;
 const ExtensionUtils = imports.misc.extensionUtils;
 
@@ -268,21 +268,49 @@ class Extension {
         };
     }
 
+    stringifyArea(area) {
+        return `{ x: ${area.x}, y: ${area.y}, width: ${area.width}, height: ${area.height} }`;
+    }
+
     moveWindow(window, area) {
         if (!window) {
             return;
         }
+
+        log('Target area: ' + this.stringifyArea(area));
+        log('Window area: ' + this.stringifyArea(window.get_frame_rect()));
+
         if (window.maximized_horizontally || window.maximized_vertically) {
             window.unmaximize(Meta.MaximizeFlags.HORIZONTAL | Meta.MaximizeFlags.VERTICAL);
         }
+
         window.move_resize_frame(true, area.x, area.y, area.width, area.height);
-        // Move the window again because of a bug in GTK with Mutter 41.3
-        // See https://gitlab.gnome.org/GNOME/mutter/-/issues/2091 for details
-        // This resolves the issue for many but not all applications
-        window.move_resize_frame(true, area.x, area.y, area.width, area.height);
-        // In some cases move_resize_frame() will resize but not move the window, so we need to move it again.
-        // This usually happens when the window's minimum size is larger than the selected area.
-        window.move_frame(true, area.x, area.y);
+
+        // In some cases move_resize_frame() will only resize the window, and we
+        // must call move_frame() to move it. This usually happens when the
+        // window's minimum size is larger than the selected area. Movement can
+        // also be a bit glitchy on Wayland. We therefore make extra attempts,
+        // alternating between move_frame() and move_resize_frame().
+
+        let attempts = 0;
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 20, () => {
+            const frame = window.get_frame_rect();
+            log(`Window area: ${this.stringifyArea(frame)} (attempt ${attempts})`);
+
+            if (frame.x === area.x && frame.y === area.y && frame.width === area.width && frame.height === area.height) {
+                return GLib.SOURCE_REMOVE;
+            }
+
+            if (attempts % 2 === 0) {
+                window.move_frame(true, area.x, area.y);
+            } else {
+                window.move_resize_frame(true, area.x, area.y, area.width, area.height);
+            }
+
+            return attempts++ < 5
+                ? GLib.SOURCE_CONTINUE
+                : GLib.SOURCE_REMOVE;
+        });
     }
 
     getNumMonitors() {
