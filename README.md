@@ -12,9 +12,11 @@ https://extensions.gnome.org/extension/4548/tactile/
 
 ## Examples
 
-![Animation of a window being moved to various positions with Tactile](examples/tactile.gif)
+![Animation of a window being moved around with Tactile](examples/usage.gif)
 
-![Picture of a windows tiled with Tactile](examples/tactile.png)
+![Animation showing the customization features of Tactile](examples/highly-customizable.gif)
+
+![Animation showing the preferences of Tactile](examples/preferences.gif)
 
 ## License
 
