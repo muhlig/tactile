@@ -38,6 +38,7 @@ class Extension {
         this._tile = null;
         this._date = null;
         this._layout = 1;
+        this._sourceIds = [];
     }
 
     enable() {
@@ -47,12 +48,28 @@ class Extension {
     }
 
     disable() {
+        // In case the extension is disabled while sources are still active
+        this.removeSources();
+
         // In case the extension is disabled while tiles are shown
         this.onHideTiles();
 
         this.unbindKey('show-tiles');
         this.unbindKey('show-settings');
         this._settings = null;
+    }
+
+    removeSources() {
+        this._sourceIds.forEach(sourceId => GLib.Source.remove(sourceId))
+        this._sourceIds = [];
+    }
+
+    addSourceToList(sourceId) {
+        this._sourceIds.push(sourceId);
+    }
+
+    removeSourceFromList(sourceId) {
+        this._sourceIds = this._sourceIds.filter(id => id !== sourceId);
     }
 
     bindKey(key, callback) {
@@ -293,11 +310,12 @@ class Extension {
         // alternating between move_frame() and move_resize_frame().
 
         let attempts = 0;
-        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 20, () => {
+        const sourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 20, () => {
             const frame = window.get_frame_rect();
             log(`Window area: ${this.stringifyArea(frame)} (attempt ${attempts})`);
 
             if (frame.x === area.x && frame.y === area.y && frame.width === area.width && frame.height === area.height) {
+                this.removeSourceFromList(sourceId);
                 return GLib.SOURCE_REMOVE;
             }
 
@@ -307,10 +325,14 @@ class Extension {
                 window.move_resize_frame(true, area.x, area.y, area.width, area.height);
             }
 
-            return attempts++ < 5
-                ? GLib.SOURCE_CONTINUE
-                : GLib.SOURCE_REMOVE;
+            if (attempts++ >= 5) {
+                this.removeSourceFromList(sourceId);
+                return GLib.SOURCE_REMOVE;
+            }
+
+            return GLib.SOURCE_CONTINUE
         });
+        this.addSourceToList(sourceId);
     }
 
     getNumMonitors() {
