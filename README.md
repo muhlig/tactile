@@ -32,6 +32,12 @@ https://extensions.gnome.org/extension/4548/tactile/
   These are normally fixed after a couple of weeks. Check if the issue disappears on Xorg.
   If so, it likely can't be fixed in Tactile, but please file an issue to let me know.
 
+- **Tactile fails to start after an update and shows 'Error'**
+
+  There seems to be a bug in GNOME's extension updater that can corrupt the extension when multiple versions are released in a short time span.
+  Try to uninstall Tactile (delete `~/.local/share/gnome-shell/extensions/tactile@lundal.io/`), reboot your machine, and then install it again.
+  If the issue persists, please file an issue.
+
 ## License
 
 Tactile is distributed under the terms of the GNU General Public License v3.0 or later.
