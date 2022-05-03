@@ -228,5 +228,13 @@
             <summary>Gap size</summary>
             <default>0</default>
         </key>
+        <key name="grid-cols" type="i">
+            <summary>Grid columns</summary>
+            <default>4</default>
+        </key>
+        <key name="grid-rows" type="i">
+            <summary>Grid rows</summary>
+            <default>3</default>
+        </key>
     </schema>
 </schemalist>

@@ -32,6 +32,11 @@ const TILE_SIZES = [
     {id: 'gap-size', desc: 'Gap size'},
 ];
 
+const GRID_SIZES = [
+    {id: 'grid-cols', desc: 'Grid columns', min: 1, max: 4},
+    {id: 'grid-rows', desc: 'Grid rows', min: 1, max: 3},
+];
+
 function init() {
     const provider = new Gtk.CssProvider();
 
@@ -107,10 +112,21 @@ function buildLayoutPage(settings, n) {
     grid.attach(weightsLabel, 0, 0, 1, 1);
     grid.attach(buildWeightsWidget(settings, n), 0, 1, 1, 1);
 
+    // Recreate WeightsWidget when grid size changes
+    function recreateWeightsWidget() {
+        grid.remove(grid.get_child_at(0, 1));
+        grid.attach(buildWeightsWidget(settings, n), 0, 1, 1, 1);
+    }
+    settings.connect('changed::grid-cols', recreateWeightsWidget);
+    settings.connect('changed::grid-rows', recreateWeightsWidget);
+
     return grid;
 }
 
 function buildWeightsWidget(settings, n) {
+    const num_cols = settings.get_int('grid-cols');
+    const num_rows = settings.get_int('grid-rows');
+
     const grid = new Gtk.Grid({
         halign: Gtk.Align.CENTER,
         column_spacing: 12,
@@ -121,20 +137,20 @@ function buildWeightsWidget(settings, n) {
     const prefix = layoutPrefix(n);
 
     // Column weights
-    for (let col = 0; col < 4; col++) {
+    for (let col = 0; col < num_cols; col++) {
         const widget = buildNumberWidget(settings, `${prefix}col-${col}`)
         grid.attach(widget, col + 1, 0, 1, 1);
     }
 
     // Row weights
-    for (let row = 0; row < 3; row++) {
+    for (let row = 0; row < num_rows; row++) {
         const widget = buildNumberWidget(settings, `${prefix}row-${row}`)
         grid.attach(widget, 0, row + 1, 1, 1);
     }
 
     // Preview
     const preview = buildPreviewWidget(settings, n);
-    grid.attach(preview, 1, 1, 4, 3);
+    grid.attach(preview, 1, 1, num_cols, num_rows);
 
     return grid;
 }
@@ -222,6 +238,14 @@ function buildKeyboardShortcutsPage(settings) {
     grid.attach(tileLabel, 0, 0, 2, 1);
     grid.attach(buildTileKeyboardShortcutsWidget(settings, allTreeViews), 0, 1, 2, 1);
 
+    // Recreate TileKeyboardShortcutsWidget when grid size changes
+    function recreateTileKeyboardShortcutsWidget() {
+        grid.remove(grid.get_child_at(0, 1));
+        grid.attach(buildTileKeyboardShortcutsWidget(settings, allTreeViews), 0, 1, 2, 1);
+    }
+    settings.connect('changed::grid-cols', recreateTileKeyboardShortcutsWidget);
+    settings.connect('changed::grid-rows', recreateTileKeyboardShortcutsWidget);
+
     const layoutLabel = new Gtk.Label({
         label: '<b>Layout activation keys</b>',
         use_markup: true,
@@ -242,6 +266,9 @@ function buildKeyboardShortcutsPage(settings) {
 }
 
 function buildTileKeyboardShortcutsWidget(settings, allTreeViews) {
+    const num_cols = settings.get_int('grid-cols');
+    const num_rows = settings.get_int('grid-rows');
+
     const grid = new Gtk.Grid({
         halign: Gtk.Align.CENTER,
         column_spacing: 12,
@@ -250,7 +277,7 @@ function buildTileKeyboardShortcutsWidget(settings, allTreeViews) {
     });
 
     // Columns
-    for (let col = 0; col < 4; col++) {
+    for (let col = 0; col < num_cols; col++) {
         const widget = new Gtk.Label({
             halign: Gtk.Align.START,
             label: `Column ${col + 1}`,
@@ -260,7 +287,7 @@ function buildTileKeyboardShortcutsWidget(settings, allTreeViews) {
     }
 
     // Rows
-    for (let row = 0; row < 3; row++) {
+    for (let row = 0; row < num_rows; row++) {
         const widget = new Gtk.Label({
             halign: Gtk.Align.START,
             label: `Row ${row + 1}`,
@@ -270,8 +297,8 @@ function buildTileKeyboardShortcutsWidget(settings, allTreeViews) {
     }
 
     // Tile hotkeys
-    for (let col = 0; col < 4; col++) {
-        for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < num_cols; col++) {
+        for (let row = 0; row < num_rows; row++) {
             const widget = buildAcceleratorWidget(settings, `tile-${col}-${row}`, allTreeViews);
             grid.attach(widget, col + 1, row + 1, 1, 1);
         }
@@ -323,6 +350,14 @@ function buildAppearancePage(settings) {
     grid.attach(tilesLabel, 0, 0, 1, 1);
     grid.attach(buildTileAppearanceWidget(settings), 0, 1, 1, 1);
 
+    const gridLabel = new Gtk.Label({
+        label: '<b>Grid size</b>',
+        use_markup: true,
+        visible: true
+    });
+    grid.attach(gridLabel, 0, 2, 1, 1);
+    grid.attach(buildGridSizeWidget(settings), 0, 3, 1, 1);
+
     return grid;
 }
 
@@ -361,11 +396,35 @@ function buildTileAppearanceWidget(settings) {
     return grid;
 }
 
-function buildNumberWidget(settings, id) {
+function buildGridSizeWidget(settings) {
+    const grid = new Gtk.Grid({
+        halign: Gtk.Align.CENTER,
+        column_spacing: 12,
+        row_spacing: 12,
+        visible: true
+    });
+
+    GRID_SIZES.forEach((size, index) => {
+        const label = new Gtk.Label({
+            halign: Gtk.Align.END,
+            label: size.desc,
+            visible: true
+        });
+        grid.attach(label, 0, index, 1, 1);
+
+        const widget = buildNumberWidget(settings, size.id, size.min, size.max);
+        grid.attach(widget, 1, index, 1, 1);
+    });
+
+    return grid;
+}
+
+
+function buildNumberWidget(settings, id, min = 0, max = 1000) {
     const spin = new Gtk.SpinButton({
         adjustment: new Gtk.Adjustment({
-            lower: 0,
-            upper: 1000,
+            lower: min,
+            upper: max,
             step_increment: 1
         }),
         visible: true
@@ -470,13 +529,16 @@ function layoutPrefix(n) {
 }
 
 function loadLayout(settings, n) {
+    const num_cols = settings.get_int('grid-cols');
+    const num_rows = settings.get_int('grid-rows');
+
     const cols = [], rows = [];
     const prefix = layoutPrefix(n);
 
-    for (let col = 0; col < 4; col++) {
+    for (let col = 0; col < num_cols; col++) {
         cols.push(settings.get_int(`${prefix}col-${col}`));
     }
-    for (let row = 0; row < 3; row++) {
+    for (let row = 0; row < num_rows; row++) {
         rows.push(settings.get_int(`${prefix}row-${row}`));
     }
 

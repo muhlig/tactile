@@ -209,13 +209,16 @@ class Extension {
     }
 
     loadLayout(settings, n) {
+        const num_cols = settings.get_int('grid-cols');
+        const num_rows = settings.get_int('grid-rows');
+
         const cols = [], rows = [];
         const prefix = this.layoutPrefix(n);
 
-        for (let col = 0; col < 4; col++) {
+        for (let col = 0; col < num_cols; col++) {
             cols.push(settings.get_int(`${prefix}col-${col}`));
         }
-        for (let row = 0; row < 3; row++) {
+        for (let row = 0; row < num_rows; row++) {
             rows.push(settings.get_int(`${prefix}row-${row}`));
         }
 
