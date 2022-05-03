@@ -33,8 +33,8 @@ const TILE_SIZES = [
 ];
 
 const GRID_SIZES = [
-    {id: 'grid-cols', desc: 'Grid columns', min: 1, max: 4},
-    {id: 'grid-rows', desc: 'Grid rows', min: 1, max: 3},
+    {id: 'grid-cols', desc: 'Columns', min: 1, max: 7},
+    {id: 'grid-rows', desc: 'Rows', min: 1, max: 5},
 ];
 
 function init() {
@@ -105,7 +105,7 @@ function buildLayoutPage(settings, n) {
     });
 
     const weightsLabel = new Gtk.Label({
-        label: '<b>Row/column weights</b>',
+        label: '<b>Column/row weights</b>',
         use_markup: true,
         visible: true
     });
@@ -119,6 +119,12 @@ function buildLayoutPage(settings, n) {
     }
     settings.connect('changed::grid-cols', recreateWeightsWidget);
     settings.connect('changed::grid-rows', recreateWeightsWidget);
+
+    const weightsFootnote = new Gtk.Label({
+        label: 'Tip: Set weight to 0 to remove any column/row from this layout',
+        visible: true
+    });
+    grid.attach(weightsFootnote, 0, 2, 1, 1);
 
     return grid;
 }

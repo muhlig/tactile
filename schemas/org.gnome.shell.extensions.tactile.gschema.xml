@@ -55,6 +55,18 @@
             <default><![CDATA[['r']]]></default>
             <summary>Tile 3:0</summary>
         </key>
+        <key name="tile-4-0" type="as">
+            <default><![CDATA[['t']]]></default>
+            <summary>Tile 4:0</summary>
+        </key>
+        <key name="tile-5-0" type="as">
+            <default><![CDATA[['y']]]></default>
+            <summary>Tile 5:0</summary>
+        </key>
+        <key name="tile-6-0" type="as">
+            <default><![CDATA[['u']]]></default>
+            <summary>Tile 6:0</summary>
+        </key>
         <key name="tile-0-1" type="as">
             <default><![CDATA[['a']]]></default>
             <summary>Tile 0:1</summary>
@@ -71,6 +83,18 @@
             <default><![CDATA[['f']]]></default>
             <summary>Tile 3:1</summary>
         </key>
+        <key name="tile-4-1" type="as">
+            <default><![CDATA[['g']]]></default>
+            <summary>Tile 4:1</summary>
+        </key>
+        <key name="tile-5-1" type="as">
+            <default><![CDATA[['h']]]></default>
+            <summary>Tile 5:1</summary>
+        </key>
+        <key name="tile-6-1" type="as">
+            <default><![CDATA[['j']]]></default>
+            <summary>Tile 6:1</summary>
+        </key>
         <key name="tile-0-2" type="as">
             <default><![CDATA[['z']]]></default>
             <summary>Tile 0:2</summary>
@@ -86,6 +110,74 @@
         <key name="tile-3-2" type="as">
             <default><![CDATA[['v']]]></default>
             <summary>Tile 3:2</summary>
+        </key>
+        <key name="tile-4-2" type="as">
+            <default><![CDATA[['b']]]></default>
+            <summary>Tile 4:2</summary>
+        </key>
+        <key name="tile-5-2" type="as">
+            <default><![CDATA[['n']]]></default>
+            <summary>Tile 5:2</summary>
+        </key>
+        <key name="tile-6-2" type="as">
+            <default><![CDATA[['m']]]></default>
+            <summary>Tile 6:2</summary>
+        </key>
+        <key name="tile-0-3" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 0:3</summary>
+        </key>
+        <key name="tile-1-3" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 1:3</summary>
+        </key>
+        <key name="tile-2-3" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 2:3</summary>
+        </key>
+        <key name="tile-3-3" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 3:3</summary>
+        </key>
+        <key name="tile-4-3" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 4:3</summary>
+        </key>
+        <key name="tile-5-3" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 5:3</summary>
+        </key>
+        <key name="tile-6-3" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 6:3</summary>
+        </key>
+        <key name="tile-0-4" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 0:4</summary>
+        </key>
+        <key name="tile-1-4" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 1:4</summary>
+        </key>
+        <key name="tile-2-4" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 2:4</summary>
+        </key>
+        <key name="tile-3-4" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 3:4</summary>
+        </key>
+        <key name="tile-4-4" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 4:4</summary>
+        </key>
+        <key name="tile-5-4" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 5:4</summary>
+        </key>
+        <key name="tile-6-4" type="as">
+            <default><![CDATA[[]]]></default>
+            <summary>Tile 6:4</summary>
         </key>
         <!-- Layout 1 -->
         <key name="col-0" type="i">
@@ -104,6 +196,18 @@
             <default>1</default>
             <summary>Layout 1 - Column 3</summary>
         </key>
+        <key name="col-4" type="i">
+            <default>0</default>
+            <summary>Layout 1 - Column 4</summary>
+        </key>
+        <key name="col-5" type="i">
+            <default>0</default>
+            <summary>Layout 1 - Column 5</summary>
+        </key>
+        <key name="col-6" type="i">
+            <default>0</default>
+            <summary>Layout 1 - Column 6</summary>
+        </key>
         <key name="row-0" type="i">
             <default>1</default>
             <summary>Layout 1 - Row 0</summary>
@@ -115,6 +219,14 @@
         <key name="row-2" type="i">
             <default>0</default>
             <summary>Layout 1 - Row 2</summary>
+        </key>
+        <key name="row-3" type="i">
+            <default>0</default>
+            <summary>Layout 1 - Row 3</summary>
+        </key>
+        <key name="row-4" type="i">
+            <default>0</default>
+            <summary>Layout 1 - Row 4</summary>
         </key>
         <!-- Layout 2 -->
         <key name="layout-2-col-0" type="i">
@@ -133,6 +245,18 @@
             <default>1</default>
             <summary>Layout 2 - Column 3</summary>
         </key>
+        <key name="layout-2-col-4" type="i">
+            <default>0</default>
+            <summary>Layout 2 - Column 4</summary>
+        </key>
+        <key name="layout-2-col-5" type="i">
+            <default>0</default>
+            <summary>Layout 2 - Column 5</summary>
+        </key>
+        <key name="layout-2-col-6" type="i">
+            <default>0</default>
+            <summary>Layout 2 - Column 6</summary>
+        </key>
         <key name="layout-2-row-0" type="i">
             <default>1</default>
             <summary>Layout 2 - Row 0</summary>
@@ -144,6 +268,14 @@
         <key name="layout-2-row-2" type="i">
             <default>1</default>
             <summary>Layout 2 - Row 2</summary>
+        </key>
+        <key name="layout-2-row-3" type="i">
+            <default>0</default>
+            <summary>Layout 2 - Row 3</summary>
+        </key>
+        <key name="layout-2-row-4" type="i">
+            <default>0</default>
+            <summary>Layout 2 - Row 4</summary>
         </key>
         <!-- Layout 3 -->
         <key name="layout-3-col-0" type="i">
@@ -162,6 +294,18 @@
             <default>1</default>
             <summary>Layout 3 - Column 3</summary>
         </key>
+        <key name="layout-3-col-4" type="i">
+            <default>0</default>
+            <summary>Layout 3 - Column 4</summary>
+        </key>
+        <key name="layout-3-col-5" type="i">
+            <default>0</default>
+            <summary>Layout 3 - Column 5</summary>
+        </key>
+        <key name="layout-3-col-6" type="i">
+            <default>0</default>
+            <summary>Layout 3 - Column 6</summary>
+        </key>
         <key name="layout-3-row-0" type="i">
             <default>1</default>
             <summary>Layout 3 - Row 0</summary>
@@ -173,6 +317,14 @@
         <key name="layout-3-row-2" type="i">
             <default>1</default>
             <summary>Layout 3 - Row 2</summary>
+        </key>
+        <key name="layout-3-row-3" type="i">
+            <default>0</default>
+            <summary>Layout 3 - Row 3</summary>
+        </key>
+        <key name="layout-3-row-4" type="i">
+            <default>0</default>
+            <summary>Layout 3 - Row 4</summary>
         </key>
         <!-- Layout 4 -->
         <key name="layout-4-col-0" type="i">
@@ -191,6 +343,18 @@
             <default>1</default>
             <summary>Layout 4 - Column 3</summary>
         </key>
+        <key name="layout-4-col-4" type="i">
+            <default>0</default>
+            <summary>Layout 4 - Column 4</summary>
+        </key>
+        <key name="layout-4-col-5" type="i">
+            <default>0</default>
+            <summary>Layout 4 - Column 5</summary>
+        </key>
+        <key name="layout-4-col-6" type="i">
+            <default>0</default>
+            <summary>Layout 4 - Column 6</summary>
+        </key>
         <key name="layout-4-row-0" type="i">
             <default>1</default>
             <summary>Layout 4 - Row 0</summary>
@@ -202,6 +366,14 @@
         <key name="layout-4-row-2" type="i">
             <default>1</default>
             <summary>Layout 4 - Row 2</summary>
+        </key>
+        <key name="layout-4-row-3" type="i">
+            <default>0</default>
+            <summary>Layout 4 - Row 3</summary>
+        </key>
+        <key name="layout-4-row-4" type="i">
+            <default>0</default>
+            <summary>Layout 4 - Row 4</summary>
         </key>
         <!-- Appearance -->
         <key name="text-color" type="s">
