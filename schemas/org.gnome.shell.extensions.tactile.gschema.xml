@@ -433,5 +433,9 @@
             <summary>Grid rows</summary>
             <default>3</default>
         </key>
+        <key name="maximize" type="b">
+            <summary>Maximize window when possible</summary>
+            <default>true</default>
+        </key>
     </schema>
 </schemalist>

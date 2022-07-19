@@ -364,6 +364,14 @@ function buildAppearancePage(settings) {
     grid.attach(gridLabel, 0, 2, 1, 1);
     grid.attach(buildGridSizeWidget(settings), 0, 3, 1, 1);
 
+    const behaviorLabel = new Gtk.Label({
+        label: '<b>Behavior</b>',
+        use_markup: true,
+        visible: true
+    });
+    grid.attach(behaviorLabel, 0, 4, 1, 1);
+    grid.attach(buildBehaviorWidget(settings), 0, 5, 1, 1);
+
     return grid;
 }
 
@@ -425,6 +433,28 @@ function buildGridSizeWidget(settings) {
     return grid;
 }
 
+function buildBehaviorWidget(settings) {
+    const grid = new Gtk.Grid({
+        halign: Gtk.Align.CENTER,
+        column_spacing: 12,
+        row_spacing: 12,
+        visible: true
+    });
+
+    const widget = buildCheckWidget(settings, "maximize", "Maximize window when possible")
+    grid.attach(widget, 0, 0, 1, 1);
+
+    return grid;
+}
+
+function buildCheckWidget(settings, id, label) {
+    const check = new Gtk.CheckButton({
+        label: label,
+        visible: true
+    });
+    settings.bind(id, check, 'active', Gio.SettingsBindFlags.DEFAULT);
+    return check;
+}
 
 function buildNumberWidget(settings, id, min = 0, max = 1000) {
     const spin = new Gtk.SpinButton({

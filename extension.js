@@ -310,8 +310,22 @@ class Extension {
         log('Target area: ' + this.stringifyArea(area));
         log('Window area: ' + this.stringifyArea(window.get_frame_rect()));
 
-        if (window.maximized_horizontally || window.maximized_vertically) {
-            window.unmaximize(Meta.MaximizeFlags.HORIZONTAL | Meta.MaximizeFlags.VERTICAL);
+        if (this._settings.get_boolean("maximize")) {
+            if (this.isEntireWorkAreaWidth(area)) {
+                window.maximize(Meta.MaximizeFlags.HORIZONTAL);
+            } else {
+                window.unmaximize(Meta.MaximizeFlags.HORIZONTAL);
+            }
+
+            if (this.isEntireWorkAreaHeight(area)) {
+                window.maximize(Meta.MaximizeFlags.VERTICAL);
+            } else {
+                window.unmaximize(Meta.MaximizeFlags.VERTICAL);
+            }
+        } else {
+            if (window.get_maximized()) {
+                window.unmaximize(Meta.MaximizeFlags.BOTH);
+            }
         }
 
         window.move_resize_frame(true, area.x, area.y, area.width, area.height);
@@ -346,6 +360,28 @@ class Extension {
             return GLib.SOURCE_CONTINUE
         });
         this.addSourceToList(sourceId);
+    }
+
+    isEntireWorkAreaWidth(area) {
+        const monitors = this.getNumMonitors();
+        for (let i = 0; i < monitors; i++) {
+            const workarea = this.getWorkAreaForMonitor(i);
+            if (area.x === workarea.x && area.width === workarea.width) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    isEntireWorkAreaHeight(area) {
+        const monitors = this.getNumMonitors();
+        for (let i = 0; i < monitors; i++) {
+            const workarea = this.getWorkAreaForMonitor(i);
+            if (area.y === workarea.y && area.height === workarea.height) {
+                return true;
+            }
+        }
+        return false;
     }
 
     getNumMonitors() {
