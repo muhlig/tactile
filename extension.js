@@ -310,6 +310,16 @@ class Extension {
         log('Target area: ' + this.stringifyArea(area));
         log('Window area: ' + this.stringifyArea(window.get_frame_rect()));
 
+        // GNOME has its own built-in tiling that is activated when pressing
+        // Super+Left/Right. There does not appear to be any way to detect this
+        // through the Meta APIs, so we always unmaximize to break the tiling.
+
+        if (window.get_maximized()) {
+            window.unmaximize(Meta.MaximizeFlags.BOTH);
+        }
+
+        window.move_resize_frame(true, area.x, area.y, area.width, area.height);
+
         if (this._settings.get_boolean("maximize")) {
             if (this.isEntireWorkAreaWidth(area)) {
                 window.maximize(Meta.MaximizeFlags.HORIZONTAL);
@@ -322,13 +332,7 @@ class Extension {
             } else {
                 window.unmaximize(Meta.MaximizeFlags.VERTICAL);
             }
-        } else {
-            if (window.get_maximized()) {
-                window.unmaximize(Meta.MaximizeFlags.BOTH);
-            }
         }
-
-        window.move_resize_frame(true, area.x, area.y, area.width, area.height);
 
         // In some cases move_resize_frame() will only resize the window, and we
         // must call move_frame() to move it. This usually happens when the
