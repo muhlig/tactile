@@ -375,6 +375,31 @@
             <default>0</default>
             <summary>Layout 4 - Row 4</summary>
         </key>
+        <!-- Monitor layouts -->
+        <key name="monitor-0-layout" type="i">
+            <default>1</default>
+            <summary>Monitor 0 layout</summary>
+        </key>
+        <key name="monitor-1-layout" type="i">
+            <default>1</default>
+            <summary>Monitor 1 layout</summary>
+        </key>
+        <key name="monitor-2-layout" type="i">
+            <default>1</default>
+            <summary>Monitor 2 layout</summary>
+        </key>
+        <key name="monitor-3-layout" type="i">
+            <default>1</default>
+            <summary>Monitor 3 layout</summary>
+        </key>
+        <key name="monitor-4-layout" type="i">
+            <default>1</default>
+            <summary>Monitor 4 layout</summary>
+        </key>
+        <key name="monitor-5-layout" type="i">
+            <default>1</default>
+            <summary>Monitor 5 layout</summary>
+        </key>
         <!-- Appearance -->
         <key name="text-color" type="s">
             <summary>Text color</summary>

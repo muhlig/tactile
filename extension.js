@@ -37,7 +37,6 @@ class Extension {
         this._monitor = null;
         this._tile = null;
         this._date = null;
-        this._layout = 1;
         this._sourceIds = [];
     }
 
@@ -129,11 +128,13 @@ class Extension {
     }
 
     onActivateLayout(n) {
+        // Save the new layout for current monitor
+        this.saveMonitorLayout(this._settings, this._monitor, n);
+
         // Remember the active monitor and window
         const monitor = this._monitor;
         const window = this._window;
 
-        this._layout = n;
         this.discardTiles();
         this.displayTiles(monitor, window);
     }
@@ -149,7 +150,8 @@ class Extension {
 
         // Create tiles
         const workarea = this.getWorkAreaForMonitor(activeMonitor);
-        const layout = this.loadLayout(this._settings, this._layout);
+        const layoutNumber = this.loadMonitorLayout(this._settings, activeMonitor);
+        const layout = this.loadLayout(this._settings, layoutNumber);
         const tiles = this.createTiles(workarea, layout);
         if (tiles.length < 1) {
             log('No tiles');
@@ -206,6 +208,14 @@ class Extension {
             return "";
         }
         return `layout-${n}-`;
+    }
+
+    saveMonitorLayout(settings, monitor, layout) {
+        settings.set_int(`monitor-${monitor}-layout`, layout);
+    }
+
+    loadMonitorLayout(settings, monitor) {
+        return settings.get_int(`monitor-${monitor}-layout`);
     }
 
     loadLayout(settings, n) {
