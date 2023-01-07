@@ -370,7 +370,7 @@ class Extension {
         const monitors = this.getNumMonitors();
         for (let i = 0; i < monitors; i++) {
             const workarea = this.getWorkAreaForMonitor(i);
-            if (area.x === workarea.x && area.width === workarea.width) {
+            if (this.isWithinWorkArea(area, workarea) && area.x === workarea.x && area.width === workarea.width) {
                 return true;
             }
         }
@@ -381,11 +381,18 @@ class Extension {
         const monitors = this.getNumMonitors();
         for (let i = 0; i < monitors; i++) {
             const workarea = this.getWorkAreaForMonitor(i);
-            if (area.y === workarea.y && area.height === workarea.height) {
+            if (this.isWithinWorkArea(area, workarea) && area.y === workarea.y && area.height === workarea.height) {
                 return true;
             }
         }
         return false;
+    }
+
+    isWithinWorkArea(area, workarea) {
+        return area.x >= workarea.x
+            && area.y >= workarea.y
+            && area.x + area.width <= workarea.x + workarea.width
+            && area.y + area.height <= workarea.y + workarea.height;
     }
 
     getNumMonitors() {
