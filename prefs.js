@@ -85,8 +85,8 @@ function buildPrefsWidget() {
         new Gtk.Label({label: 'Keyboard shortcuts', visible: true})
     );
     notebook.append_page(
-        buildAppearancePage(settings),
-        new Gtk.Label({label: 'Appearance', visible: true})
+        buildAdvancedPage(settings),
+        new Gtk.Label({label: 'Advanced', visible: true})
     );
 
     return notebook;
@@ -336,7 +336,7 @@ function buildKeyboardShortcutsWidget(settings, shortcuts, allTreeViews) {
     return grid;
 }
 
-function buildAppearancePage(settings) {
+function buildAdvancedPage(settings) {
     const grid = new Gtk.Grid({
         halign: Gtk.Align.CENTER,
         margin_start: 12,
@@ -441,8 +441,11 @@ function buildBehaviorWidget(settings) {
         visible: true
     });
 
-    const widget = buildCheckWidget(settings, "maximize", "Maximize window when possible")
-    grid.attach(widget, 0, 0, 1, 1);
+    const maximizeWidget = buildCheckWidget(settings, "maximize", "Maximize window when possible");
+    grid.attach(maximizeWidget, 0, 0, 1, 1);
+
+    const debugWidget = buildCheckWidget(settings, "debug", "Log debug information to journal");
+    grid.attach(debugWidget, 0, 1, 1, 1);
 
     return grid;
 }

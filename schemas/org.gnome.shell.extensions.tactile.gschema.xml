@@ -400,7 +400,7 @@
             <default>1</default>
             <summary>Monitor 5 layout</summary>
         </key>
-        <!-- Appearance -->
+        <!-- Advanced -->
         <key name="text-color" type="s">
             <summary>Text color</summary>
             <default>'rgba(128,128,255,1.0)'</default>
@@ -436,6 +436,10 @@
         <key name="maximize" type="b">
             <summary>Maximize window when possible</summary>
             <default>true</default>
+        </key>
+        <key name="debug" type="b">
+            <summary>Log debug information to journal</summary>
+            <default>false</default>
         </key>
     </schema>
 </schemalist>

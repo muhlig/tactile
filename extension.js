@@ -140,10 +140,12 @@ class Extension {
     }
 
     displayTiles(monitor, window) {
+        this.debug("Display tiles (begin)");
+
         // Find active window
         const activeWindow = window != null ? window : this.getActiveWindow();
         if (!activeWindow) {
-            log('No active window');
+            this.debug('No active window');
             return;
         }
         const activeMonitor = monitor != null ? monitor : activeWindow.get_monitor();
@@ -154,7 +156,7 @@ class Extension {
         const layout = this.loadLayout(this._settings, layoutNumber);
         const tiles = this.createTiles(workarea, layout);
         if (tiles.length < 1) {
-            log('No tiles');
+            this.debug('No tiles');
             return;
         }
 
@@ -177,9 +179,13 @@ class Extension {
         this.bindKey('layout-2', () => this.onActivateLayout(2));
         this.bindKey('layout-3', () => this.onActivateLayout(3));
         this.bindKey('layout-4', () => this.onActivateLayout(4));
+
+        this.debug("Display tiles (finish)");
     }
 
     discardTiles() {
+        this.debug("Discard tiles (begin)");
+
         // Unbind keys
         this.unbindKey('layout-4');
         this.unbindKey('layout-3');
@@ -200,6 +206,8 @@ class Extension {
         this._tiles = [];
         this._monitor = null;
         this._window = null;
+
+        this.debug("Discard tiles (finish)");
     }
 
     layoutPrefix(n) {
@@ -307,8 +315,8 @@ class Extension {
             return;
         }
 
-        log('Target area: ' + this.stringifyArea(area));
-        log('Window area: ' + this.stringifyArea(window.get_frame_rect()));
+        this.debug('Target area: ' + this.stringifyArea(area));
+        this.debug('Window area: ' + this.stringifyArea(window.get_frame_rect()));
 
         // GNOME has its own built-in tiling that is activated when pressing
         // Super+Left/Right. There does not appear to be any way to detect this
@@ -343,7 +351,7 @@ class Extension {
         let attempts = 0;
         const sourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 20, () => {
             const frame = window.get_frame_rect();
-            log(`Window area: ${this.stringifyArea(frame)} (attempt ${attempts})`);
+            this.debug(`Window area: ${this.stringifyArea(frame)} (attempt ${attempts})`);
 
             if (frame.x === area.x && frame.y === area.y && frame.width === area.width && frame.height === area.height) {
                 this.removeSourceFromList(sourceId);
@@ -421,6 +429,12 @@ class Extension {
 
     sumAll(list) {
         return list.reduce((prev, curr) => prev + curr, 0);
+    }
+
+    debug(message) {
+        if (this._settings.get_boolean("debug")) {
+            log("Tactile: " + message);
+        }
     }
 }
 
