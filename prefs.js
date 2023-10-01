@@ -1,6 +1,9 @@
-const {Gdk, Gio, GObject, Gtk} = imports.gi;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+import Gdk from 'gi://Gdk';
+import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
+import Gtk from 'gi://Gtk'; 
+import Adw from 'gi://Adw';
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 const COLUMN_KEY = 0;
 const COLUMN_MODS = 1;
@@ -37,97 +40,77 @@ const GRID_SIZES = [
     {id: 'grid-rows', desc: 'Rows', min: 1, max: 5},
 ];
 
-function init() {
-    const provider = new Gtk.CssProvider();
+export default class TactilePreferences extends ExtensionPreferences {
+    fillPreferencesWindow(window) {
+        window._settings = this.getSettings();
+        const provider = new Gtk.CssProvider();
 
-    provider.load_from_path(Me.dir.get_path() + '/prefs.css');
+        provider.load_from_path(this.dir.get_path() + '/prefs.css');
 
-    if (Gtk.StyleContext.add_provider_for_display) {
-        // GTK 4
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(),
             provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         );
-    } else {
-        // GTK 3
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(),
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        );
+    
+        window.add(new LayoutPage(window._settings, 1));
+        window.add(new LayoutPage(window._settings, 2));
+        window.add(new LayoutPage(window._settings, 3));
+        window.add(new LayoutPage(window._settings, 4));
+        window.add(new KeyboardShortcutsPage(window._settings));
+        window.add(new AdvancedPage(window._settings));
     }
 }
 
-function buildPrefsWidget() {
-    const settings = ExtensionUtils.getSettings();
+const LayoutPage = GObject.registerClass(
+class LayoutPage extends Adw.PreferencesPage {
+    _init(settings, n) {
+        this._settings = settings;
+        this._n = n;
 
-    const notebook = new Gtk.Notebook({visible: true});
+        super._init({
+            title: `Layout ${this._n}`,
+            name: `LayoutPage${this._n}`,
+        });
+        
+        const grid = new Gtk.Grid({
+            halign: Gtk.Align.CENTER,
+            margin_start: 12,
+            margin_end: 12,
+            margin_top: 12,
+            margin_bottom: 12,
+            column_spacing: 12,
+            row_spacing: 12,
+            visible: true
+        });
 
-    notebook.append_page(
-        buildLayoutPage(settings, 1),
-        new Gtk.Label({label: 'Layout 1', visible: true})
-    );
-    notebook.append_page(
-        buildLayoutPage(settings, 2),
-        new Gtk.Label({label: 'Layout 2', visible: true})
-    );
-    notebook.append_page(
-        buildLayoutPage(settings, 3),
-        new Gtk.Label({label: 'Layout 3', visible: true})
-    );
-    notebook.append_page(
-        buildLayoutPage(settings, 4),
-        new Gtk.Label({label: 'Layout 4', visible: true})
-    );
-    notebook.append_page(
-        buildKeyboardShortcutsPage(settings),
-        new Gtk.Label({label: 'Keyboard shortcuts', visible: true})
-    );
-    notebook.append_page(
-        buildAdvancedPage(settings),
-        new Gtk.Label({label: 'Advanced', visible: true})
-    );
-
-    return notebook;
-}
-
-function buildLayoutPage(settings, n) {
-    const grid = new Gtk.Grid({
-        halign: Gtk.Align.CENTER,
-        margin_start: 12,
-        margin_end: 12,
-        margin_top: 12,
-        margin_bottom: 12,
-        column_spacing: 12,
-        row_spacing: 12,
-        visible: true
-    });
-
-    const weightsLabel = new Gtk.Label({
-        label: '<b>Column/row weights</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(weightsLabel, 0, 0, 1, 1);
-    grid.attach(buildWeightsWidget(settings, n), 0, 1, 1, 1);
-
-    // Recreate WeightsWidget when grid size changes
-    function recreateWeightsWidget() {
-        grid.remove(grid.get_child_at(0, 1));
+        const weightsLabel = new Gtk.Label({
+            label: '<b>Column/row weights</b>',
+            use_markup: true,
+            visible: true
+        });
+        grid.attach(weightsLabel, 0, 0, 1, 1);
         grid.attach(buildWeightsWidget(settings, n), 0, 1, 1, 1);
+
+        // Recreate WeightsWidget when grid size changes
+        function recreateWeightsWidget() {
+            grid.remove(grid.get_child_at(0, 1));
+            grid.attach(buildWeightsWidget(settings, n), 0, 1, 1, 1);
+        }
+        settings.connect('changed::grid-cols', recreateWeightsWidget);
+        settings.connect('changed::grid-rows', recreateWeightsWidget);
+
+        const weightsFootnote = new Gtk.Label({
+            label: 'Tip: Set weight to 0 to remove any column/row from this layout',
+            visible: true
+        });
+        grid.attach(weightsFootnote, 0, 2, 1, 1);
+
+        const group = new Adw.PreferencesGroup();
+        group.add(grid);
+        this.add(group);
     }
-    settings.connect('changed::grid-cols', recreateWeightsWidget);
-    settings.connect('changed::grid-rows', recreateWeightsWidget);
-
-    const weightsFootnote = new Gtk.Label({
-        label: 'Tip: Set weight to 0 to remove any column/row from this layout',
-        visible: true
-    });
-    grid.attach(weightsFootnote, 0, 2, 1, 1);
-
-    return grid;
-}
+});
 
 function buildWeightsWidget(settings, n) {
     const num_cols = settings.get_int('grid-cols');
@@ -222,54 +205,68 @@ function buildPreviewWidget(settings, n) {
     return grid;
 }
 
-function buildKeyboardShortcutsPage(settings) {
-    const grid = new Gtk.Grid({
-        halign: Gtk.Align.CENTER,
-        margin_start: 12,
-        margin_end: 12,
-        margin_top: 12,
-        margin_bottom: 12,
-        column_spacing: 12,
-        row_spacing: 12,
-        visible: true
-    });
+const KeyboardShortcutsPage = GObject.registerClass(
+class KeyboardShortcutsPage extends Adw.PreferencesPage {
+    _init(settings) {
+        this._settings = settings;
 
-    const allTreeViews = [];
 
-    const tileLabel = new Gtk.Label({
-        label: '<b>Tile activation keys</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(tileLabel, 0, 0, 2, 1);
-    grid.attach(buildTileKeyboardShortcutsWidget(settings, allTreeViews), 0, 1, 2, 1);
+        super._init({
+            title: "Keyboard Shortcuts",
+            name: "KeyboardShortcuts",
+        });
 
-    // Recreate TileKeyboardShortcutsWidget when grid size changes
-    function recreateTileKeyboardShortcutsWidget() {
-        grid.remove(grid.get_child_at(0, 1));
+        const grid = new Gtk.Grid({
+            halign: Gtk.Align.CENTER,
+            margin_start: 12,
+            margin_end: 12,
+            margin_top: 12,
+            margin_bottom: 12,
+            column_spacing: 12,
+            row_spacing: 12,
+            visible: true
+        });
+
+        const allTreeViews = [];
+
+        const tileLabel = new Gtk.Label({
+            label: '<b>Tile activation keys</b>',
+            use_markup: true,
+            visible: true
+        });
+        grid.attach(tileLabel, 0, 0, 2, 1);
         grid.attach(buildTileKeyboardShortcutsWidget(settings, allTreeViews), 0, 1, 2, 1);
+
+        // Recreate TileKeyboardShortcutsWidget when grid size changes
+        function recreateTileKeyboardShortcutsWidget() {
+            grid.remove(grid.get_child_at(0, 1));
+            grid.attach(buildTileKeyboardShortcutsWidget(settings, allTreeViews), 0, 1, 2, 1);
+        }
+        settings.connect('changed::grid-cols', recreateTileKeyboardShortcutsWidget);
+        settings.connect('changed::grid-rows', recreateTileKeyboardShortcutsWidget);
+
+        const layoutLabel = new Gtk.Label({
+            label: '<b>Layout activation keys</b>',
+            use_markup: true,
+            visible: true
+        });
+        grid.attach(layoutLabel, 0, 2, 1, 1);
+        grid.attach(buildKeyboardShortcutsWidget(settings, LAYOUT_SHORTCUTS, allTreeViews), 0, 3, 1, 1);
+
+        const generalLabel = new Gtk.Label({
+            label: '<b>General shortcuts</b>',
+            use_markup: true,
+            visible: true
+        });
+        grid.attach(generalLabel, 1, 2, 1, 1);
+        grid.attach(buildKeyboardShortcutsWidget(settings, GENERAL_SHORTCUTS, allTreeViews), 1, 3, 1, 1);
+
+        const group = new Adw.PreferencesGroup();
+        group.add(grid);
+        this.add(group);
     }
-    settings.connect('changed::grid-cols', recreateTileKeyboardShortcutsWidget);
-    settings.connect('changed::grid-rows', recreateTileKeyboardShortcutsWidget);
+});
 
-    const layoutLabel = new Gtk.Label({
-        label: '<b>Layout activation keys</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(layoutLabel, 0, 2, 1, 1);
-    grid.attach(buildKeyboardShortcutsWidget(settings, LAYOUT_SHORTCUTS, allTreeViews), 0, 3, 1, 1);
-
-    const generalLabel = new Gtk.Label({
-        label: '<b>General shortcuts</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(generalLabel, 1, 2, 1, 1);
-    grid.attach(buildKeyboardShortcutsWidget(settings, GENERAL_SHORTCUTS, allTreeViews), 1, 3, 1, 1);
-
-    return grid;
-}
 
 function buildTileKeyboardShortcutsWidget(settings, allTreeViews) {
     const num_cols = settings.get_int('grid-cols');
@@ -336,44 +333,55 @@ function buildKeyboardShortcutsWidget(settings, shortcuts, allTreeViews) {
     return grid;
 }
 
-function buildAdvancedPage(settings) {
-    const grid = new Gtk.Grid({
-        halign: Gtk.Align.CENTER,
-        margin_start: 12,
-        margin_end: 12,
-        margin_top: 12,
-        margin_bottom: 12,
-        column_spacing: 12,
-        row_spacing: 12,
-        visible: true
-    });
+const AdvancedPage = GObject.registerClass(
+class AdvancedPage extends Adw.PreferencesPage {
+    _init(settings) {
+        this._settings = this._settings;
 
-    const tilesLabel = new Gtk.Label({
-        label: '<b>Tile appearance</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(tilesLabel, 0, 0, 1, 1);
-    grid.attach(buildTileAppearanceWidget(settings), 0, 1, 1, 1);
+        super._init({
+            title: "Advanced",
+            name: "Advanced",
+        });
 
-    const gridLabel = new Gtk.Label({
-        label: '<b>Grid size</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(gridLabel, 0, 2, 1, 1);
-    grid.attach(buildGridSizeWidget(settings), 0, 3, 1, 1);
+        const grid = new Gtk.Grid({
+            halign: Gtk.Align.CENTER,
+            margin_start: 12,
+            margin_end: 12,
+            margin_top: 12,
+            margin_bottom: 12,
+            column_spacing: 12,
+            row_spacing: 12,
+            visible: true
+        });
 
-    const behaviorLabel = new Gtk.Label({
-        label: '<b>Behavior</b>',
-        use_markup: true,
-        visible: true
-    });
-    grid.attach(behaviorLabel, 0, 4, 1, 1);
-    grid.attach(buildBehaviorWidget(settings), 0, 5, 1, 1);
+        const tilesLabel = new Gtk.Label({
+            label: '<b>Tile appearance</b>',
+            use_markup: true,
+            visible: true
+        });
+        grid.attach(tilesLabel, 0, 0, 1, 1);
+        grid.attach(buildTileAppearanceWidget(settings), 0, 1, 1, 1);
 
-    return grid;
-}
+        const gridLabel = new Gtk.Label({
+            label: '<b>Grid size</b>',
+            use_markup: true,
+            visible: true
+        });
+        grid.attach(gridLabel, 0, 2, 1, 1);
+        grid.attach(buildGridSizeWidget(settings), 0, 3, 1, 1);
+
+        const behaviorLabel = new Gtk.Label({
+            label: '<b>Behavior</b>',
+            use_markup: true,
+            visible: true
+        });
+        grid.attach(behaviorLabel, 0, 4, 1, 1);
+        grid.attach(buildBehaviorWidget(settings), 0, 5, 1, 1);
+        const group = new Adw.PreferencesGroup();
+        group.add(grid);
+        this.add(group);
+    }
+});
 
 function buildTileAppearanceWidget(settings) {
     const grid = new Gtk.Grid({
